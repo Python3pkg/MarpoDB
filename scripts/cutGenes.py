@@ -73,7 +73,7 @@ transFile = open(sys.argv[2])
 
 transSeq = SeqIO.to_dict(SeqIO.parse(transFile, "fasta"))
 
-for transcriptName, seq in transSeq.iteritems():
+for transcriptName, seq in transSeq.items():
 	if transcriptName in transcripts:
 		transcripts[transcriptName]["length"] = len(seq)
 
@@ -117,7 +117,7 @@ pepFile.close()
 
 loci = {}
 
-for transcriptName, transcript in transcripts.iteritems():
+for transcriptName, transcript in transcripts.items():
 	locusName 	= transcript["locusName"]
 	
 	if not locusName in loci:
@@ -145,7 +145,7 @@ for transcriptName, transcript in transcripts.iteritems():
 			exon = transcript["exons"][i]
 			transcript["exons"][i] = (exon[0] - startCut + 1, exon[1] - startCut + 1 )
 	
-	for cdsName, cds in transcript["cdss"].iteritems():
+	for cdsName, cds in transcript["cdss"].items():
 			cdsDir = cds["transLoc"][2]
 
 			started = False 
@@ -249,14 +249,14 @@ def insertRow(table, valuesDict):
 
 def compRev(seq, sign):
 	if sign =='-':
-		sub = dict( zip( ['A', 'T', 'G', 'C', 'N'], ['T', 'A', 'C', 'G', 'N'] ) )
+		sub = dict( list(zip( ['A', 'T', 'G', 'C', 'N'], ['T', 'A', 'C', 'G', 'N'] )) )
 		return ''.join( sub[nucl] for nucl in seq.upper() )[::-1]
 	else:
 		return seq
 
 def getKey(dic, value):
 	ret = None
-	for cid, cval in dic.iteritems():
+	for cid, cval in dic.items():
 		if cval == value:
 			ret = cid
 	return ret
@@ -286,21 +286,21 @@ def getUtrCoordinates(exons, cdsStart, cdsStop):
 
 	return coordinates
 
-for locusName, locus in loci.iteritems():
+for locusName, locus in loci.items():
 	locus["PromoterP"] = None
 	locus["PromoterN"] = None
 	locus["TerminatorP"] = None
 	locus["TerminatorN"] = None
 	locus["ID"] = insertRow('locus', {'coordinates' : locus["coordinates"]})
 
-for transcriptName, transcript in transcripts.iteritems():
+for transcriptName, transcript in transcripts.items():
 
 	locus = loci[ transcript["locusName"] ]
 
 	transStart = min ( [ex[0] for ex in transcript["exons"]] )
 	transStop =  max ( [ex[1] for ex in transcript["exons"]] )
 
-	for cdsName, cds in transcript["cdss"].iteritems():
+	for cdsName, cds in transcript["cdss"].items():
 		if transcript["direction"] == cds["transLoc"][2]:
 			direction = '+'
 		else:
@@ -360,6 +360,6 @@ for transcriptName, transcript in transcripts.iteritems():
 
 		if geneID:
 			if direction == '+':
-				print '\t'.join([cdsID, geneID, promoterID, utrL, cdsID, utrR, terminatorID, locus["ID"], "{0}|{1}".format(transcriptName, cdsName) ])
+				print('\t'.join([cdsID, geneID, promoterID, utrL, cdsID, utrR, terminatorID, locus["ID"], "{0}|{1}".format(transcriptName, cdsName) ]))
 			else:
-				print '\t'.join([cdsID, geneID, promoterID, utrR, cdsID, utrL, terminatorID, locus["ID"], "{0}|{1}".format(transcriptName, cdsName) ])
+				print('\t'.join([cdsID, geneID, promoterID, utrR, cdsID, utrL, terminatorID, locus["ID"], "{0}|{1}".format(transcriptName, cdsName) ]))

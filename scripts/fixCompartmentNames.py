@@ -23,4 +23,4 @@ for line in compFile:
  		tabs[1] = genomeDict[gID]
 
  		line = '\t'.join(tabs)
- 	print line
+ 	print(line)

@@ -1,5 +1,5 @@
 from partsdb.partsdb import PartsDB
-from tables import *
+from .tables import *
 
 from partsdb.tools.Exporters import GenBankExporter
 
@@ -8,8 +8,8 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask_user import UserMixin, SQLAlchemyAdapter, UserManager, LoginManager
 from flask_login import login_user, login_required, logout_user, current_user, user_logged_in
 
-from user import RegisterForm, LoginForm
-from system import getUserData, generateNewMap, getTopGenes, processQuery, getGeneCoordinates, getCDSDetails, parseBlastResult, recfind
+from .user import RegisterForm, LoginForm
+from .system import getUserData, generateNewMap, getTopGenes, processQuery, getGeneCoordinates, getCDSDetails, parseBlastResult, recfind
 
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -61,7 +61,7 @@ def user_data():
 	userData = getUserData(StarGene, current_user, session, marpodbSession)
 	
 	marpodbSession.close()
-	print "userData:", userData
+	print("userData:", userData)
 
 	return dict(user_data = userData)
 
@@ -171,7 +171,7 @@ def details():
 	if not cds:
 		abort(404)
 
-	print "Debug: ", cds.dbid
+	print("Debug: ", cds.dbid)
 
 	response = getGeneCoordinates(marpodbSession, locus.id)
 
@@ -261,12 +261,12 @@ def exportGene():
 
 	gene = marpodbSession.query(Gene).filter(Gene.dbid == dbid).first()
 		
-	print "LOG"
+	print("LOG")
 
 	if not gene:
 		return ('', 204)
 
-	print "ID:", gene.dbid
+	print("ID:", gene.dbid)
 
 	record = exporter.export(gene)
 
@@ -289,7 +289,7 @@ def recode():
 	if not gene:
 		abort(404)
 
-	print seqType
+	print(seqType)
 
 	if seqType == 'cds':
 		seq = gene.cds.seq
@@ -304,7 +304,7 @@ def recode():
 	else:
 		abort(404)
 
-	print "Seq: ", gene.promoter.seq
+	print("Seq: ", gene.promoter.seq)
 
 	seq = Seq(seq)
 
@@ -419,11 +419,11 @@ def starGene():
 	cdsdbid = request.args.get('cdsdbid','')
 	marpodbSession = marpodb.Session()
 
-	print "StarGene: ", cdsdbid
+	print("StarGene: ", cdsdbid)
 
 	cds = marpodbSession.query(CDS).filter(CDS.dbid == cdsdbid).first()
 		
-	print cds
+	print(cds)
 
 	if cds:
 		if current_user.is_authenticated:
@@ -458,7 +458,7 @@ def logout():
 def map():
 	if not os.path.isfile('server/static/img/map.png'):
 		generateNewMap(User)
-		print "Map not found"
+		print("Map not found")
 	return render_template('map.html', title='Community map')
 
 @app.route('/top')

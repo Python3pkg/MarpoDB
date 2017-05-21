@@ -17,4 +17,4 @@ for line in inFile:
 		tabs = line.rstrip('\n').split()
 		transName = tabs[3].split('|')[0]
 		if transName in mapped:
-			print "\t".join(tabs)
+			print("\t".join(tabs))

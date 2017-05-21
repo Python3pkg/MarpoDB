@@ -1,4 +1,4 @@
-from __future__ import division
+
 import sys
 import psycopg2
 
@@ -49,7 +49,7 @@ for line in inFile:
 	
 	names = ["cdsID", "uniID", "qlen", "slen", "qstart", "qend", "tstart", "tend", "qcovs", "pident", "evalue", "proteinName", "origin",  "geneName"]
 
-	data = dict( zip(names, tabs) )
+	data = dict( list(zip(names, tabs)) )
 	data["uniID"] = data["uniID"].split('|')[2]
 
 	name = "{0}_{1}".format(data["cdsID"], data["uniID"])
@@ -75,7 +75,7 @@ for line in inFile:
 
 inFile.close()
 
-for hitName, hit in hits.iteritems():
+for hitName, hit in hits.items():
 	cdsID = hitName.split('_')[0]
 	uniID = hitName.split('_')[1]
 
@@ -85,7 +85,7 @@ for hitName, hit in hits.iteritems():
 	if cdsID:
 		insertRow('blastp_hit', hit)
 	else:
-		print "Failed to locate {0}".format(hitName.split('_')[0])
+		print("Failed to locate {0}".format(hitName.split('_')[0]))
 
 conn.commit()
 cur.close()

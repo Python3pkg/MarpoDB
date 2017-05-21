@@ -1,6 +1,6 @@
 import sys
 from partsdb.partsdb import PartsDB
-from tables import *
+from .tables import *
 
 from Bio.Seq import Seq
 from Bio.Alphabet import generic_dna
@@ -24,7 +24,7 @@ if exportFeature == 'Prot':
 		feature = SeqFeature( location = exporter.coordinatesToLocation(gene.cds.coordinates) )
 		seq = feature.extract(Seq(gene.cds.seq, generic_dna)).translate()
 		if not (seq[0] == 'M' and seq.find('*') == len(seq)-1):
-			print gene.cds.dbid, seq
+			print(gene.cds.dbid, seq)
 		else:
 			record = SeqRecord( seq = seq, id = gene.cds.dbid, description='Extracted from '+sys.argv[1] )
 			records.append(record)
@@ -50,13 +50,13 @@ elif exportFeature == 'Gene':
 		records.append(record)
 
 else:
-	print "Unknown exportFeature: '{0}'".format(exportFeature)
+	print("Unknown exportFeature: '{0}'".format(exportFeature))
 	sys.exit() 
 
 
 outputFile = open('data/{0}.fa'.format(exportFeature), 'w')
 
 SeqIO.write(records, outputFile, 'fasta')
-print "Exported {0} sequences to data/{1}.fa".format(len(records), exportFeature)
+print("Exported {0} sequences to data/{1}.fa".format(len(records), exportFeature))
 
 session.close()

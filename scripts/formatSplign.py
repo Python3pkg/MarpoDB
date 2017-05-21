@@ -78,8 +78,8 @@ for qId in queries:
 		coverage = queries[qId]['covered'] / float(queries[qId]['length'])
 		identity = queries[qId]['identified'] / float(queries[qId]['length'])
 
-		print '###'
-		print '###', queries[qId]['target'], coverage, identity, queries[qId]['code']
+		print('###')
+		print('###', queries[qId]['target'], coverage, identity, queries[qId]['code'])
 		queries[qId]['exons'].sort( key = lambda x: x[0][0] )
 		for exon in queries[qId]['exons']:
 			tabs = []
@@ -97,4 +97,4 @@ for qId in queries:
 
 			tabs.append('.')
 			tabs.append("Target={0} {1} {2}".format(queries[qId]['target'], exon[0][0], exon[0][1]))
-			print '\t'.join(tabs)
+			print('\t'.join(tabs))

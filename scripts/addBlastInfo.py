@@ -35,5 +35,5 @@ for line in blastpFile:
 	tabs = line.rstrip().split('\t')
 	acc = tabs[1].split('|')[1]
 	if acc in accList:
-		print '\t'.join( tabs + accList[acc] )
+		print('\t'.join( tabs + accList[acc] ))
 

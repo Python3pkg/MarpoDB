@@ -24,4 +24,4 @@ for line in inFile:
 			keep = False
 
 	if keep:
-		print line
+		print(line)

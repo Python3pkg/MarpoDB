@@ -3,14 +3,14 @@ from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation, CompoundLocation
 from Bio.Alphabet import IUPAC
 from PIL import Image
-from StringIO import StringIO
+from io import StringIO
 
 import requests
 import json
 
 import collections
 
-from tables import *
+from .tables import *
 from partsdb.tools.Exporters import GenBankExporter
 from sqlalchemy import or_
 
@@ -27,7 +27,7 @@ def recfind(pattern, string, where_should_I_start=0):
     return [pos] + recfind(pattern, string, pos + len(pattern))
 
 def parseBlastResult(data, session, lineLenght = 60):
-	print "BLAST:"
+	print("BLAST:")
 	# print data
 	blastResult = json.loads(data)
 	rows = []
@@ -43,8 +43,8 @@ def parseBlastResult(data, session, lineLenght = 60):
 			row['locusdbid'] = session.query(Locus.dbid).filter(Gene.dbid == row['dbid']).filter(Gene.locusID == Locus.id).first()[0]
 		row.update(hit["hsps"][0])
 
-		print "identity: ", row["identity"]
-		print "align_len: ", row["align_len"]
+		print("identity: ", row["identity"])
+		print("align_len: ", row["align_len"])
 
 		row["identity"] = "{0:.2f}".format(float(row["identity"]) / blastResult["BlastOutput2"][0]["report"]["results"]["search"]["query_len"])
 		row["coverage"] = "{0:.2f}".format( float(row["align_len"]-row["gaps"]) / blastResult["BlastOutput2"][0]["report"]["results"]["search"]["query_len"])
@@ -62,27 +62,27 @@ def generateNewMap(User):
 	places = [ user.affiliation for user in users ]
 	markers = []
 
-	print "PLACES:"	
+	print("PLACES:")	
 
 	for place in places:
-		print "\n" + place 
+		print("\n" + place) 
 		data={"query":place, "key":"AIzaSyC3bpj_TeBv6EJgf3zCRd7I__RjKL-hTyU"}
 		r = requests.get("https://maps.googleapis.com/maps/api/place/textsearch/json", params = data)
-		print r.url
-		print r.json
+		print(r.url)
+		print(r.json)
 		if r.status_code == requests.codes.ok:
-			markers.append(u"{0},{1}".format(r.json()["results"][0]["geometry"]["location"]["lat"], r.json()["results"][0]["geometry"]["location"]["lng"]))	
+			markers.append("{0},{1}".format(r.json()["results"][0]["geometry"]["location"]["lat"], r.json()["results"][0]["geometry"]["location"]["lng"]))	
 
 	with open('server/static/json/map_style.json') as dataFile:    
 	    data = json.load(dataFile)
 	
-	print markers
+	print(markers)
 	
 	data["style"] = [ ("|".join( key + ':' + str(style[key]) for key in sorted(style.keys()) )) for style in data["style"] ]
-	data["markers"] = [ u"size:tiny|color:green|{}".format(marker) for marker in markers ]
+	data["markers"] = [ "size:tiny|color:green|{}".format(marker) for marker in markers ]
 
 	r = requests.get("http://maps.googleapis.com/maps/api/staticmap", params = data, stream=True)
-	print r.url
+	print(r.url)
 	if r.status_code == requests.codes.ok:
 		mapImage = Image.open(StringIO(r.content))
 		box = (0, 110, 1020, 775)
@@ -90,7 +90,7 @@ def generateNewMap(User):
 		mapImage.save("server/static/img/map.png","PNG")
 
 def getClassByTablename(tablename):
-	for c in Base._decl_class_registry.values():
+	for c in list(Base._decl_class_registry.values()):
 		if hasattr(c, '__tablename__') and c.__tablename__ == tablename:
 			return c
 	return None
@@ -123,7 +123,7 @@ def getTopGenes(marpodbSession, StarGene, n):
 	cdsids = [star.cdsdbid for star in StarGene.query.all()]
 	topCDSScores = dict(collections.Counter(cdsids).most_common(n))
 
-	topCDS = [ (cdsdbid, getGeneHomolog(marpodbSession, cdsdbid), topCDSScores[cdsdbid] ) for cdsdbid in topCDSScores.keys() ]
+	topCDS = [ (cdsdbid, getGeneHomolog(marpodbSession, cdsdbid), topCDSScores[cdsdbid] ) for cdsdbid in list(topCDSScores.keys()) ]
 		
 	return sorted(topCDS, key = lambda x: x[2], reverse=True)
 
@@ -204,11 +204,11 @@ def processQuery(marpodbSession, scope, term, columns, nHits):
 
 			scColumns = scopeDict[scLevel][scTable]
 
-			print scTable, scColumns
+			print(scTable, scColumns)
 
 			newData = findDataIn(marpodbSession, scLevel, scTable, scColumns, term, columns[scTable])
 
-			print newData
+			print(newData)
 
 			for hit in newData:
 
@@ -247,7 +247,7 @@ def processQuery(marpodbSession, scope, term, columns, nHits):
 		sortCol = "name"
 
 
-	for locusDBID, locus in loci.iteritems():
+	for locusDBID, locus in loci.items():
 				# [	z for w in [ genes[gene]     ["trans"][x]["cds"]  [y]["hits"]          for x in genes[gene]     ["trans"]           for y in       genes[gene]     ["trans"][x]["cds"]                         ] for z in w]
 		allHits = [ z for w in [ locus["genes"][x]["parts"][y]["hits"] 	       for x in locus["genes"]           for y in       locus["genes"][x]["parts"]                       ] for z in w]
 
@@ -256,14 +256,14 @@ def processQuery(marpodbSession, scope, term, columns, nHits):
 
 		# print locusDBID
 
-		for geneDBID, gene in locus["genes"].iteritems():
+		for geneDBID, gene in locus["genes"].items():
 			# print "\t{0}".format(geneDBID)
 						# [z for w in [ genes[gene]["trans"][trans]["cds"][x]["hits"] for x in  genes[gene]["trans"][trans]["cds"]] for z in w ]
 			allHits =     [z for w in [ gene["parts"][x]["hits"] 		   					  for x in  gene["parts"]                             ] for z in w ]
 			sortedHits = sortHits(allHits, dcMap[sortCol]+1, nHits)
 			gene["topRow"] =  [geneDBID] + sortedHits[0][1:]
 
-			for partDBID, part in gene["parts"].iteritems():
+			for partDBID, part in gene["parts"].items():
 				# print "\t\t{0}, {1}".format(partDBID, len(part["hits"]))
 
 				sortedHits = sortHits( part["hits"], dcMap[sortCol]+1, nHits)
@@ -276,7 +276,7 @@ def processQuery(marpodbSession, scope, term, columns, nHits):
 
 	rowid = 0
 
-	lociList = sorted( loci.values(), key = lambda locus: locus["topRow"][dcMap[sortCol]+1] )
+	lociList = sorted( list(loci.values()), key = lambda locus: locus["topRow"][dcMap[sortCol]+1] )
 
 	for locus in lociList:
 		rowid += 1
@@ -285,7 +285,7 @@ def processQuery(marpodbSession, scope, term, columns, nHits):
 		row = {"rowid": rowid, "pid": "none", "cols": locus["topRow"], "level" : "locus"}
 		table["data"].append(row)
 
-		geneList = sorted( locus["genes"].values(), key = lambda gene: gene["topRow"][dcMap[sortCol]+1] )
+		geneList = sorted( list(locus["genes"].values()), key = lambda gene: gene["topRow"][dcMap[sortCol]+1] )
 
 		for gene in geneList:
 			rowid += 1
@@ -294,7 +294,7 @@ def processQuery(marpodbSession, scope, term, columns, nHits):
 			row = {"rowid": rowid, "pid": locusid, "cols": gene["topRow"], "level" : "gene"}
 			table["data"].append(row)
 
-			partList = sorted( gene["parts"].values(), key = lambda part: part["topRow"][dcMap[sortCol]+1] )
+			partList = sorted( list(gene["parts"].values()), key = lambda part: part["topRow"][dcMap[sortCol]+1] )
 
 			for part in partList:
 				rowid += 1
@@ -331,7 +331,7 @@ def processQuery(marpodbSession, scope, term, columns, nHits):
 				genes[gene]["trans"][trans]["cds"][cds]["topRow"] = [cds] + sortedHits[0][1:]
 				genes[gene]["trans"][trans]["cds"][cds]["hits"] = sortedHits
 
-	geneList = sorted(genes.values(), key = lambda gene: gene["topRow"][dcMap[sortCol]+1])
+	geneList = sorted(list(genes.values()), key = lambda gene: gene["topRow"][dcMap[sortCol]+1])
 	
 	# Generating output table
 	table = {}
@@ -405,7 +405,7 @@ def getGeneCoordinates(marpodbSession, locusid):
 			response['genes'][record.id]['features'][feature.id] = coordinates
 		
 		if not 'seq' in response:
-			print 'Sequence of ', record.id
+			print('Sequence of ', record.id)
 			if response['genes'][record.id]['strand'] == 1:
 				response['seq'] = record.seq
 			else:
@@ -421,7 +421,7 @@ def getBlastpHits(marpodbSession, cdsDBID):
 		for hit in hits:
 			coordinateString = hit.coordinates
 			tabs = coordinateString.split(';')[:-1]
-			print tabs
+			print(tabs)
 			coordinates = [  [int(tab.split(',')[0].split(':')[0]), int(tab.split(',')[0].split(':')[1]),\
 											int(tab.split(',')[1].split(':')[0]), int(tab.split(',')[1].split(':')[1]),\
 												float(tab.split(',')[2])] for tab in tabs ]
@@ -472,7 +472,7 @@ def exportGB(cur, cdsName):
 	cur.execute("SELECT coordinates FROM cds WHERE name=%s", (cdsName,))
 	cdsCoordinates = cur.fetchone()
 
-	print cdsCoordinates
+	print(cdsCoordinates)
 
 	if not( cdsCoordinates and cdsCoordinates[0] ):
 		return None
@@ -480,14 +480,14 @@ def exportGB(cur, cdsName):
 	cdsLocations = []
 
 	cdsString = cdsCoordinates[0].split(';')
-	print cdsString
+	print(cdsString)
 	for part in cdsString:
 		tabs = part.split(',')
 		start = int(tabs[0])-1
 		end = 	int(tabs[1])
 		strand = 1 if tabs[2]=='+' else -1
 
-		print start, end, strand
+		print(start, end, strand)
 
 		cdsLocations.append( FeatureLocation(start, end, strand = strand) )
 	

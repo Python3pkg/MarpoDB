@@ -5,4 +5,4 @@ for line in open(sys.argv[1]):
 	if line.startswith('>'):
 		line = line.replace('|', ' ')
 		line = line[0] + 'lcl|' + line[1:]
-	print line
+	print(line)
